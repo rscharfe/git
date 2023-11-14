@@ -1138,7 +1138,7 @@ static void try_to_simplify_commit(struct rev_info *revs, struct commit *commit)
 }
 
 static int process_parents(struct rev_info *revs, struct commit *commit,
-			   struct commit_list **list, struct prio_queue *queue)
+			   struct prio_queue *queue)
 {
 	struct commit_list *parent = commit->parents;
 	unsigned pass_flags;
@@ -1179,8 +1179,6 @@ static int process_parents(struct rev_info *revs, struct commit *commit,
 			if (p->object.flags & SEEN)
 				continue;
 			p->object.flags |= (SEEN | NOT_USER_GIVEN);
-			if (list)
-				commit_list_insert_by_date(p, list);
 			if (queue)
 				prio_queue_put(queue, p);
 			if (revs->exclude_first_parent_only)
@@ -1228,8 +1226,6 @@ static int process_parents(struct rev_info *revs, struct commit *commit,
 		p->object.flags |= pass_flags;
 		if (!(p->object.flags & SEEN)) {
 			p->object.flags |= (SEEN | NOT_USER_GIVEN);
-			if (list)
-				commit_list_insert_by_date(p, list);
 			if (queue)
 				prio_queue_put(queue, p);
 		}
@@ -1492,7 +1488,7 @@ static int limit_list(struct rev_info *revs)
 
 		if (revs->max_age != -1 && (commit->date < revs->max_age))
 			obj->flags |= UNINTERESTING;
-		if (process_parents(revs, commit, NULL, &queue) < 0)
+		if (process_parents(revs, commit, &queue) < 0)
 			return -1;
 		if (obj->flags & UNINTERESTING) {
 			mark_parents_uninteresting(revs, commit);
@@ -3680,7 +3676,7 @@ static void explore_walk_step(struct rev_info *revs)
 	if (revs->max_age != -1 && (c->date < revs->max_age))
 		c->object.flags |= UNINTERESTING;
 
-	if (process_parents(revs, c, NULL, NULL) < 0)
+	if (process_parents(revs, c, NULL) < 0)
 		return;
 
 	if (c->object.flags & UNINTERESTING)
@@ -3856,7 +3852,7 @@ static void expand_topo_walk(struct rev_info *revs, struct commit *commit)
 {
 	struct commit_list *p;
 	struct topo_walk_info *info = revs->topo_walk_info;
-	if (process_parents(revs, commit, NULL, NULL) < 0) {
+	if (process_parents(revs, commit, NULL) < 0) {
 		if (!revs->ignore_missing_links)
 			die("Failed to traverse parents of commit %s",
 			    oid_to_hex(&commit->object.oid));
@@ -3961,7 +3957,7 @@ static enum rewrite_result rewrite_one_1(struct rev_info *revs,
 	for (;;) {
 		struct commit *p = *pp;
 		if (!revs->limited)
-			if (process_parents(revs, p, NULL, queue) < 0)
+			if (process_parents(revs, p, queue) < 0)
 				return rewrite_one_error;
 		if (p->object.flags & UNINTERESTING)
 			return rewrite_one_ok;
@@ -4319,7 +4315,7 @@ static struct commit *get_revision_1(struct rev_info *revs)
 			else if (revs->topo_walk_info)
 				expand_topo_walk(revs, commit);
 			else {
-				if (process_parents(revs, commit, NULL, &queue) < 0) {
+				if (process_parents(revs, commit, &queue) < 0) {
 					if (!revs->ignore_missing_links)
 						die("Failed to traverse parents of commit %s",
 							oid_to_hex(&commit->object.oid));
