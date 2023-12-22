@@ -10,6 +10,8 @@
 #   that the diff output isn't wildly unreasonable.
 
 test_description='test tree diff when trees have duplicate entries'
+
+TEST_PASSES_SANITIZE_LEAK=true
 . ./test-lib.sh
 
 # make_tree_entry <mode> <mode> <sha1>
