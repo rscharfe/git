@@ -3871,6 +3871,50 @@ static void expand_topo_walk(struct rev_info *revs, struct commit *commit)
 	}
 }
 
+static enum rewrite_result line_log_rewrite_one(struct rev_info *rev UNUSED,
+						struct commit **pp)
+{
+	for (;;) {
+		struct commit *p = *pp;
+		if (p->parents && p->parents->next)
+			return rewrite_one_ok;
+		if (p->object.flags & UNINTERESTING)
+			return rewrite_one_ok;
+		if (!(p->object.flags & TREESAME))
+			return rewrite_one_ok;
+		if (!p->parents)
+			return rewrite_one_noparents;
+		*pp = p->parents->item;
+	}
+}
+
+static int line_log_filter(struct rev_info *rev)
+{
+	struct commit *commit;
+	struct commit_list *list = rev->commits;
+	struct commit_list *out = NULL, **pp = &out;
+
+	while (list) {
+		struct commit_list *to_free = NULL;
+		commit = list->item;
+		if (line_log_process_ranges_arbitrary_commit(rev, commit)) {
+			*pp = list;
+			pp = &list->next;
+		} else
+			to_free = list;
+		list = list->next;
+		free(to_free);
+	}
+	*pp = NULL;
+
+	for (list = out; list; list = list->next)
+		rewrite_parents(rev, list->item, line_log_rewrite_one);
+
+	rev->commits = out;
+
+	return 0;
+}
+
 int prepare_revision_walk(struct rev_info *revs)
 {
 	int i;
