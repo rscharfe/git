@@ -3871,39 +3871,21 @@ static void expand_topo_walk(struct rev_info *revs, struct commit *commit)
 	}
 }
 
-static enum rewrite_result line_log_rewrite_one(struct rev_info *rev UNUSED,
-						struct commit **pp)
-{
-	for (;;) {
-		struct commit *p = *pp;
-		if (p->parents && p->parents->next)
-			return rewrite_one_ok;
-		if (p->object.flags & UNINTERESTING)
-			return rewrite_one_ok;
-		if (!(p->object.flags & TREESAME))
-			return rewrite_one_ok;
-		if (!p->parents)
-			return rewrite_one_noparents;
-		*pp = p->parents->item;
-	}
-}
-
 static void line_log_rewrite_parents(struct rev_info *revs,
 				     struct commit *commit)
 {
 	struct commit_list **pp = &commit->parents;
 	while (*pp) {
 		struct commit_list *parent = *pp;
-		switch (line_log_rewrite_one(revs, &parent->item)) {
-		case rewrite_one_ok:
-			break;
-		case rewrite_one_noparents:
+		struct commit *p = parent->item;
+		if ((p->parents && p->parents->next) ||
+		    (p->object.flags & UNINTERESTING) ||
+		    !(p->object.flags & TREESAME))
+			pp = &parent->next;
+		else if (!p->parents)
 			*pp = parent->next;
-			continue;
-		case rewrite_one_error:
-			return;
-		}
-		pp = &parent->next;
+		else
+			parent->item = p->parents->item;
 	}
 	remove_duplicate_parents(revs, commit);
 }
