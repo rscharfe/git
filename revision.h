@@ -523,7 +523,6 @@ void add_index_objects_to_pending(struct rev_info *, unsigned int flags);
 enum commit_action {
 	commit_ignore,
 	commit_show,
-	commit_error
 };
 
 enum commit_action get_commit_action(struct rev_info *revs,

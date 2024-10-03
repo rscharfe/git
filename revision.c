@@ -4261,7 +4261,8 @@ enum commit_action simplify_commit(struct rev_info *revs, struct commit *commit)
 		if (revs->full_diff)
 			save_parents(revs, commit);
 		if (rewrite_parents(revs, commit) < 0)
-			return commit_error;
+			die("Failed to simplify parents of commit %s",
+			    oid_to_hex(&commit->object.oid));
 	}
 	return action;
 }
@@ -4336,9 +4337,6 @@ static struct commit *get_revision_1(struct rev_info *revs)
 		switch (simplify_commit(revs, commit)) {
 		case commit_ignore:
 			continue;
-		case commit_error:
-			die("Failed to simplify parents of commit %s",
-			    oid_to_hex(&commit->object.oid));
 		default:
 			if (revs->track_linear)
 				track_linear(revs, commit);
