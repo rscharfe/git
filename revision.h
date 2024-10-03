@@ -537,12 +537,6 @@ enum rewrite_result {
 	rewrite_one_error
 };
 
-typedef enum rewrite_result (*rewrite_parent_fn_t)(struct rev_info *revs, struct commit **pp);
-
-int rewrite_parents(struct rev_info *revs,
-		    struct commit *commit,
-		    rewrite_parent_fn_t rewrite_parent);
-
 /*
  * The log machinery saves the original parent list so that
  * get_saved_parents() can later tell what the real parents of the

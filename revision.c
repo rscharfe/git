@@ -3888,6 +3888,26 @@ static enum rewrite_result line_log_rewrite_one(struct rev_info *rev UNUSED,
 	}
 }
 
+static void line_log_rewrite_parents(struct rev_info *revs,
+				     struct commit *commit)
+{
+	struct commit_list **pp = &commit->parents;
+	while (*pp) {
+		struct commit_list *parent = *pp;
+		switch (line_log_rewrite_one(revs, &parent->item)) {
+		case rewrite_one_ok:
+			break;
+		case rewrite_one_noparents:
+			*pp = parent->next;
+			continue;
+		case rewrite_one_error:
+			return;
+		}
+		pp = &parent->next;
+	}
+	remove_duplicate_parents(revs, commit);
+}
+
 static int line_log_filter(struct rev_info *rev)
 {
 	struct commit *commit;
@@ -3908,7 +3928,7 @@ static int line_log_filter(struct rev_info *rev)
 	*pp = NULL;
 
 	for (list = out; list; list = list->next)
-		rewrite_parents(rev, list->item, line_log_rewrite_one);
+		line_log_rewrite_parents(rev, list->item);
 
 	rev->commits = out;
 
@@ -4025,13 +4045,12 @@ static enum rewrite_result rewrite_one(struct rev_info *revs, struct commit **pp
 	return ret;
 }
 
-int rewrite_parents(struct rev_info *revs, struct commit *commit,
-	rewrite_parent_fn_t rewrite_parent)
+static int rewrite_parents(struct rev_info *revs, struct commit *commit)
 {
 	struct commit_list **pp = &commit->parents;
 	while (*pp) {
 		struct commit_list *parent = *pp;
-		switch (rewrite_parent(revs, &parent->item)) {
+		switch (rewrite_one(revs, &parent->item)) {
 		case rewrite_one_ok:
 			break;
 		case rewrite_one_noparents:
@@ -4278,7 +4297,7 @@ enum commit_action simplify_commit(struct rev_info *revs, struct commit *commit)
 		 */
 		if (revs->full_diff)
 			save_parents(revs, commit);
-		if (rewrite_parents(revs, commit, rewrite_one) < 0)
+		if (rewrite_parents(revs, commit) < 0)
 			return commit_error;
 	}
 	return action;
