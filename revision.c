@@ -4284,6 +4284,8 @@ static void track_linear(struct rev_info *revs, struct commit *commit)
 
 static struct commit *get_revision_1(struct rev_info *revs)
 {
+	struct prio_queue queue = { compare_commits_by_commit_date };
+
 	while (1) {
 		struct commit *commit;
 
@@ -4294,8 +4296,10 @@ static struct commit *get_revision_1(struct rev_info *revs)
 		else
 			commit = pop_commit(&revs->commits);
 
-		if (!commit)
+		if (!commit) {
+			clear_prio_queue(&queue);
 			return NULL;
+		}
 
 		if (revs->reflog_info)
 			commit->object.flags &= ~(ADDED | SEEN | SHOWN);
@@ -4314,10 +4318,13 @@ static struct commit *get_revision_1(struct rev_info *revs)
 				try_to_simplify_commit(revs, commit);
 			else if (revs->topo_walk_info)
 				expand_topo_walk(revs, commit);
-			else if (process_parents(revs, commit, &revs->commits, NULL) < 0) {
-				if (!revs->ignore_missing_links)
-					die("Failed to traverse parents of commit %s",
-						oid_to_hex(&commit->object.oid));
+			else {
+				if (process_parents(revs, commit, NULL, &queue) < 0) {
+					if (!revs->ignore_missing_links)
+						die("Failed to traverse parents of commit %s",
+							oid_to_hex(&commit->object.oid));
+				}
+				merge_queue_into_list(&queue, &revs->commits);
 			}
 		}
 
@@ -4330,6 +4337,7 @@ static struct commit *get_revision_1(struct rev_info *revs)
 		default:
 			if (revs->track_linear)
 				track_linear(revs, commit);
+			clear_prio_queue(&queue);
 			return commit;
 		}
 	}
