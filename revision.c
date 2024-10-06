@@ -3997,19 +3997,16 @@ static void merge_queue_into_list(struct prio_queue *q, struct commit_list **lis
 	}
 }
 
-static int rewrite_parents(struct rev_info *revs, struct commit *commit)
+static int rewrite_parents(struct rev_info *revs, struct commit *commit,
+			   struct prio_queue *queue)
 {
 	struct commit_list **pp = &commit->parents;
-	struct prio_queue queue = { compare_commits_by_commit_date };
 	while (*pp) {
 		struct commit_list *parent = *pp;
 		struct commit *p = parent->item;
 		if (!revs->limited) {
-			if (process_parents(revs, p, &queue) < 0) {
-				merge_queue_into_list(&queue, &revs->commits);
-				clear_prio_queue(&queue);
+			if (process_parents(revs, p, queue) < 0)
 				return -1;
-			}
 		}
 		if ((p->object.flags & UNINTERESTING) ||
 		    !(p->object.flags & TREESAME))
@@ -4018,13 +4015,9 @@ static int rewrite_parents(struct rev_info *revs, struct commit *commit)
 			pop_commit(pp);
 		else if (!(p = one_relevant_parent(revs, p->parents)))
 			pp = &parent->next;
-		else {
+		else
 			parent->item = p;
-			continue;
-		}
-		merge_queue_into_list(&queue, &revs->commits);
 	}
-	clear_prio_queue(&queue);
 	remove_duplicate_parents(revs, commit);
 	return 0;
 }
@@ -4325,9 +4318,10 @@ static struct commit *get_revision_1(struct rev_info *revs)
 			 */
 			if (revs->full_diff)
 				save_parents(revs, commit);
-			if (rewrite_parents(revs, commit) < 0)
+			if (rewrite_parents(revs, commit, &queue) < 0)
 				die("Failed to simplify parents of commit %s",
 				    oid_to_hex(&commit->object.oid));
+			merge_queue_into_list(&queue, &revs->commits);
 		}
 		if (revs->track_linear)
 			track_linear(revs, commit);
