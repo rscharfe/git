@@ -46,10 +46,6 @@ static struct tr2_counter_metadata tr2_counter_metadata[TRACE2_NUMBER_OF_COUNTER
 		.name = "hardware-flush",
 		.want_per_thread_events = 0,
 	},
-	[TRACE2_COUNTER_ID_COMMIT_LIST_INSERT_BY_DATE_COMPARES] = {
-		.category = "commit",
-		.name = "commit_list_insert_by_date-compares",
-	},
 	[TRACE2_COUNTER_ID_MERGE_QUEUE_INTO_LIST_COMPARES] = {
 		.category = "prio-queue",
 		.name = "merge_queue_into_list-compares",
