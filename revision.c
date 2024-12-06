@@ -4271,8 +4271,10 @@ static struct commit *get_revision_1(struct rev_info *revs)
 			commit = next_reflog_entry(revs->reflog_info);
 		else if (revs->topo_walk_info)
 			commit = next_topo_commit(revs);
-		else
+		else {
+			merge_queue_into_list(&queue, &revs->commits);
 			commit = pop_commit(&revs->commits);
+		}
 
 		if (!commit) {
 			clear_prio_queue(&queue);
@@ -4302,7 +4304,6 @@ static struct commit *get_revision_1(struct rev_info *revs)
 						die("Failed to traverse parents of commit %s",
 							oid_to_hex(&commit->object.oid));
 				}
-				merge_queue_into_list(&queue, &revs->commits);
 			}
 		}
 
@@ -4321,8 +4322,8 @@ static struct commit *get_revision_1(struct rev_info *revs)
 			if (rewrite_parents(revs, commit, &queue) < 0)
 				die("Failed to simplify parents of commit %s",
 				    oid_to_hex(&commit->object.oid));
-			merge_queue_into_list(&queue, &revs->commits);
 		}
+		merge_queue_into_list(&queue, &revs->commits);
 		if (revs->track_linear)
 			track_linear(revs, commit);
 		clear_prio_queue(&queue);
