@@ -4246,27 +4246,6 @@ struct commit_list *get_saved_parents(struct rev_info *revs, const struct commit
 	return parents;
 }
 
-enum commit_action simplify_commit(struct rev_info *revs, struct commit *commit)
-{
-	enum commit_action action = get_commit_action(revs, commit);
-
-	if (action == commit_show &&
-	    revs->prune && revs->dense && want_ancestry(revs)) {
-		/*
-		 * --full-diff on simplified parents is no good: it
-		 * will show spurious changes from the commits that
-		 * were elided.  So we save the parents on the side
-		 * when --full-diff is in effect.
-		 */
-		if (revs->full_diff)
-			save_parents(revs, commit);
-		if (rewrite_parents(revs, commit) < 0)
-			die("Failed to simplify parents of commit %s",
-			    oid_to_hex(&commit->object.oid));
-	}
-	return action;
-}
-
 static void track_linear(struct rev_info *revs, struct commit *commit)
 {
 	if (revs->track_first_time) {
@@ -4334,15 +4313,26 @@ static struct commit *get_revision_1(struct rev_info *revs)
 			}
 		}
 
-		switch (simplify_commit(revs, commit)) {
-		case commit_ignore:
+		if (get_commit_action(revs, commit) == commit_ignore)
 			continue;
-		default:
-			if (revs->track_linear)
-				track_linear(revs, commit);
-			clear_prio_queue(&queue);
-			return commit;
+
+		if (revs->prune && revs->dense && want_ancestry(revs)) {
+			/*
+			 * --full-diff on simplified parents is no good: it
+			 * will show spurious changes from the commits that
+			 * were elided.  So we save the parents on the side
+			 * when --full-diff is in effect.
+			 */
+			if (revs->full_diff)
+				save_parents(revs, commit);
+			if (rewrite_parents(revs, commit) < 0)
+				die("Failed to simplify parents of commit %s",
+				    oid_to_hex(&commit->object.oid));
 		}
+		if (revs->track_linear)
+			track_linear(revs, commit);
+		clear_prio_queue(&queue);
+		return commit;
 	}
 }
 

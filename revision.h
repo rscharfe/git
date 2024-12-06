@@ -527,8 +527,6 @@ enum commit_action {
 
 enum commit_action get_commit_action(struct rev_info *revs,
 				     struct commit *commit);
-enum commit_action simplify_commit(struct rev_info *revs,
-				   struct commit *commit);
 
 /*
  * The log machinery saves the original parent list so that
