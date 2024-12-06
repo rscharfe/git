@@ -30,6 +30,7 @@
 #include "hook.h"
 #include "parse.h"
 #include "object-file-convert.h"
+#include "trace2.h"
 
 static struct commit_extra_header *read_commit_extra_header_lines(const char *buf, size_t len, const char **);
 
@@ -710,6 +711,7 @@ struct commit_list * commit_list_insert_by_date(struct commit *item, struct comm
 	struct commit_list **pp = list;
 	struct commit_list *p;
 	while ((p = *pp) != NULL) {
+		trace2_counter_add(TRACE2_COUNTER_ID_COMMIT_LIST_INSERT_BY_DATE_COMPARES, 1);
 		if (p->item->date < item->date) {
 			break;
 		}

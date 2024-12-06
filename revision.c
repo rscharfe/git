@@ -3981,6 +3981,8 @@ static void merge_queue_into_list(struct prio_queue *q, struct commit_list **lis
 		struct commit *item = prio_queue_peek(q);
 		struct commit_list *p = *list;
 
+		if (p)
+			trace2_counter_add(TRACE2_COUNTER_ID_MERGE_QUEUE_INTO_LIST_COMPARES, 1);
 		if (p && p->item->date >= item->date)
 			list = &p->next;
 		else {

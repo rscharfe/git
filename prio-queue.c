@@ -1,10 +1,12 @@
 #include "git-compat-util.h"
 #include "prio-queue.h"
+#include "trace2.h"
 
 static inline int compare(struct prio_queue *queue, int i, int j)
 {
 	int cmp = queue->compare(queue->array[i].data, queue->array[j].data,
 				 queue->cb_data);
+	trace2_counter_add(TRACE2_COUNTER_ID_PRIO_QUEUE_COMPARES, 1);
 	if (!cmp)
 		cmp = queue->array[i].ctr - queue->array[j].ctr;
 	return cmp;
