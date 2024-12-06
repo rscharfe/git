@@ -68,7 +68,8 @@ static int paint_down_to_common(struct repository *r,
 
 	one->object.flags |= PARENT1;
 	if (!n) {
-		commit_list_append(one, result);
+		if (result)
+			commit_list_append(one, result);
 		return 0;
 	}
 	prio_queue_put(&queue, one);
@@ -97,7 +98,8 @@ static int paint_down_to_common(struct repository *r,
 		if (flags == (PARENT1 | PARENT2)) {
 			if (!(commit->object.flags & RESULT)) {
 				commit->object.flags |= RESULT;
-				tail = commit_list_append(commit, tail);
+				if (result)
+					tail = commit_list_append(commit, tail);
 			}
 			/* Mark parents of a found merge stale */
 			flags |= STALE;
@@ -110,8 +112,10 @@ static int paint_down_to_common(struct repository *r,
 				continue;
 			if (repo_parse_commit(r, p)) {
 				clear_prio_queue(&queue);
-				free_commit_list(*result);
-				*result = NULL;
+				if (result) {
+					free_commit_list(*result);
+					*result = NULL;
+				}
 				/*
 				 * At this stage, we know that the commit is
 				 * missing: `repo_parse_commit()` uses
@@ -119,10 +123,8 @@ static int paint_down_to_common(struct repository *r,
 				 * corrupt commits would already have been
 				 * dispatched with a `die()`.
 				 */
-				if (ignore_missing_commits) {
-					commit_list_sort_by_date(result);
+				if (ignore_missing_commits)
 					return 0;
-				}
 				return error(_("could not parse commit %s"),
 					     oid_to_hex(&p->object.oid));
 			}
@@ -132,7 +134,6 @@ static int paint_down_to_common(struct repository *r,
 	}
 
 	clear_prio_queue(&queue);
-	commit_list_sort_by_date(result);
 	return 0;
 }
 
@@ -231,7 +232,6 @@ static int remove_redundant_no_gen(struct repository *r,
 	for (i = 0; i < cnt; i++)
 		repo_parse_commit(r, array[i]);
 	for (i = 0; i < cnt; i++) {
-		struct commit_list *common = NULL;
 		timestamp_t min_generation = commit_graph_generation(array[i]);
 
 		if (redundant[i])
@@ -248,10 +248,9 @@ static int remove_redundant_no_gen(struct repository *r,
 				min_generation = curr_generation;
 		}
 		if (paint_down_to_common(r, array[i], filled,
-					 work, min_generation, 0, &common)) {
+					 work, min_generation, 0, NULL)) {
 			clear_commit_marks(array[i], all_flags);
 			clear_commit_marks_many(filled, work, all_flags);
-			free_commit_list(common);
 			free(work);
 			free(redundant);
 			free(filled_index);
@@ -264,7 +263,6 @@ static int remove_redundant_no_gen(struct repository *r,
 				redundant[filled_index[j]] = 1;
 		clear_commit_marks(array[i], all_flags);
 		clear_commit_marks_many(filled, work, all_flags);
-		free_commit_list(common);
 	}
 
 	/* Now collect the result */
@@ -534,7 +532,6 @@ int repo_in_merge_bases_many(struct repository *r, struct commit *commit,
 			     int nr_reference, struct commit **reference,
 			     int ignore_missing_commits)
 {
-	struct commit_list *bases = NULL;
 	int ret = 0, i;
 	timestamp_t generation, max_generation = GENERATION_NUMBER_ZERO;
 
@@ -555,13 +552,12 @@ int repo_in_merge_bases_many(struct repository *r, struct commit *commit,
 
 	if (paint_down_to_common(r, commit,
 				 nr_reference, reference,
-				 generation, ignore_missing_commits, &bases))
+				 generation, ignore_missing_commits, NULL))
 		ret = -1;
 	else if (commit->object.flags & PARENT2)
 		ret = 1;
 	clear_commit_marks(commit, all_flags);
 	clear_commit_marks_many(nr_reference, reference, all_flags);
-	free_commit_list(bases);
 	return ret;
 }
 
