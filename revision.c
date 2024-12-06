@@ -3979,27 +3979,6 @@ int prepare_revision_walk(struct rev_info *revs)
 	return 0;
 }
 
-static enum rewrite_result rewrite_one_1(struct rev_info *revs,
-					 struct commit **pp,
-					 struct prio_queue *queue)
-{
-	for (;;) {
-		struct commit *p = *pp;
-		if (!revs->limited)
-			if (process_parents(revs, p, queue) < 0)
-				return rewrite_one_error;
-		if (p->object.flags & UNINTERESTING)
-			return rewrite_one_ok;
-		if (!(p->object.flags & TREESAME))
-			return rewrite_one_ok;
-		if (!p->parents)
-			return rewrite_one_noparents;
-		if (!(p = one_relevant_parent(revs, p->parents)))
-			return rewrite_one_ok;
-		*pp = p;
-	}
-}
-
 static void merge_queue_into_list(struct prio_queue *q, struct commit_list **list)
 {
 	while (q->nr) {
@@ -4018,32 +3997,34 @@ static void merge_queue_into_list(struct prio_queue *q, struct commit_list **lis
 	}
 }
 
-static enum rewrite_result rewrite_one(struct rev_info *revs, struct commit **pp)
-{
-	struct prio_queue queue = { compare_commits_by_commit_date };
-	enum rewrite_result ret = rewrite_one_1(revs, pp, &queue);
-	merge_queue_into_list(&queue, &revs->commits);
-	clear_prio_queue(&queue);
-	return ret;
-}
-
 static int rewrite_parents(struct rev_info *revs, struct commit *commit)
 {
 	struct commit_list **pp = &commit->parents;
+	struct prio_queue queue = { compare_commits_by_commit_date };
 	while (*pp) {
 		struct commit_list *parent = *pp;
-		switch (rewrite_one(revs, &parent->item)) {
-		case rewrite_one_ok:
-			break;
-		case rewrite_one_noparents:
-			*pp = parent->next;
-			free(parent);
-			continue;
-		case rewrite_one_error:
-			return -1;
+		struct commit *p = parent->item;
+		if (!revs->limited) {
+			if (process_parents(revs, p, &queue) < 0) {
+				merge_queue_into_list(&queue, &revs->commits);
+				clear_prio_queue(&queue);
+				return -1;
+			}
 		}
-		pp = &parent->next;
+		if ((p->object.flags & UNINTERESTING) ||
+		    !(p->object.flags & TREESAME))
+			pp = &parent->next;
+		else if (!p->parents)
+			pop_commit(pp);
+		else if (!(p = one_relevant_parent(revs, p->parents)))
+			pp = &parent->next;
+		else {
+			parent->item = p;
+			continue;
+		}
+		merge_queue_into_list(&queue, &revs->commits);
 	}
+	clear_prio_queue(&queue);
 	remove_duplicate_parents(revs, commit);
 	return 0;
 }

@@ -531,12 +531,6 @@ enum commit_action get_commit_action(struct rev_info *revs,
 enum commit_action simplify_commit(struct rev_info *revs,
 				   struct commit *commit);
 
-enum rewrite_result {
-	rewrite_one_ok,
-	rewrite_one_noparents,
-	rewrite_one_error
-};
-
 /*
  * The log machinery saves the original parent list so that
  * get_saved_parents() can later tell what the real parents of the
