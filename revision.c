@@ -4271,9 +4271,16 @@ static struct commit *get_revision_1(struct rev_info *revs)
 			commit = next_reflog_entry(revs->reflog_info);
 		else if (revs->topo_walk_info)
 			commit = next_topo_commit(revs);
-		else {
-			merge_queue_into_list(&queue, &revs->commits);
+		else if (!queue.nr)
 			commit = pop_commit(&revs->commits);
+		else if (!revs->commits)
+			commit = prio_queue_get(&queue);
+		else {
+			trace2_counter_add(TRACE2_COUNTER_ID_MERGE_QUEUE_INTO_LIST_COMPARES, 1);
+			if (revs->commits->item->date < ((struct commit *)prio_queue_peek(&queue))->date)
+				commit = prio_queue_get(&queue);
+			else
+				commit = pop_commit(&revs->commits);
 		}
 
 		if (!commit) {
