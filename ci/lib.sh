@@ -346,7 +346,7 @@ macos-*)
 esac
 
 CUSTOM_PATH="${CUSTOM_PATH:-$HOME/path}"
-export PATH="$CUSTOM_PATH:$PATH"
+export PATH="$PATH:$CUSTOM_PATH"
 
 case "$jobname" in
 linux32)
