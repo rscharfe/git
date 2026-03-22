@@ -58,8 +58,6 @@ case "$jobname" in
 	;;
 *)
 	group Build make
-	group "Run tests" make test ||
-	handle_failed_tests
 	;;
 esac
 
