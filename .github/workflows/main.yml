@@ -115,7 +115,7 @@ jobs:
       matrix:
         vector:
           - jobname: osx-clang
-            cc: clang
+            cc: /opt/homebrew/opt/llvm@15/bin/clang
             pool: macos-14
           - jobname: osx-reftable
             cc: clang
