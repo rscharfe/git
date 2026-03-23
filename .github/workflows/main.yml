@@ -130,6 +130,10 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - run: ci/install-dependencies.sh
+    - run: echo __ENVIRONMENT_OS_VERSION_MIN_REQUIRED__ | /usr/bin/clang -E -
+    - run: echo __ENVIRONMENT_OS_VERSION_MIN_REQUIRED__ | /opt/homebrew/opt/llvm@15/bin/clang -E -
+    - run: printf "%s\n" "#include <regex.h>" REG_ENHANCED __MAC_OS_X_VERSION_MIN_REQUIRED | /usr/bin/clang -E -
+    - run: printf "%s\n" "#include <regex.h>" REG_ENHANCED __MAC_OS_X_VERSION_MIN_REQUIRED | /opt/homebrew/opt/llvm@15/bin/clang -E -
     - run: ci/run-build-and-tests.sh
     - name: print test failures
       if: failure() && env.FAILED_TEST_ARTIFACTS != ''
