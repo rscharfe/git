@@ -878,7 +878,7 @@ static int add(int ac, const char **av, const char *prefix,
 	if (opts.orphan && !new_branch) {
 		int n;
 		const char *s = worktree_basename(path, &n);
-		new_branch = new_branch_to_free = xstrndup(s, n);
+		new_branch = new_branch_to_free = xmemdupz(s, path + n - s);
 	} else if (opts.orphan) {
 		; /* no-op */
 	} else if (opts.detach) {

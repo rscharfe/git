@@ -393,6 +393,14 @@ test_expect_success '"add --orphan (no -b)"' '
 	test_cmp expected actual
 '
 
+test_expect_success '"add --orphan with trailing slash (no -b)"' '
+	test_when_finished "git worktree remove -f -f neworphan" &&
+	git worktree add --orphan ./neworphan/ &&
+	echo refs/heads/neworphan >expected &&
+	git -C neworphan symbolic-ref HEAD >actual &&
+	test_cmp expected actual
+'
+
 test_expect_success '"add --orphan --quiet"' '
 	test_when_finished "git worktree remove -f -f orphandir" &&
 	git worktree add --quiet --orphan -b neworphan orphandir 2>log.actual &&
