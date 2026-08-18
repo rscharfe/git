@@ -298,6 +298,11 @@ test_expect_success '"add" with <branch> omitted' '
 	test_cmp_rev HEAD bat
 '
 
+test_expect_success '"add" with trailing slash and <branch> omitted' '
+	git worktree add waffle/bit/ &&
+	test_cmp_rev HEAD bit
+'
+
 test_expect_success '"add" checks out existing branch of dwimd name' '
 	git branch dwim HEAD~1 &&
 	git worktree add dwim &&
