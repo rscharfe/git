@@ -614,7 +614,6 @@ static void dos_time(timestamp_t *timestamp, int *dos_date, int *dos_time)
 {
 	time_t time;
 	struct tm tm;
-	int year;
 
 	if (date_overflows(*timestamp))
 		die(_("timestamp too large for this system: %"PRItime),
@@ -623,11 +622,8 @@ static void dos_time(timestamp_t *timestamp, int *dos_date, int *dos_time)
 	localtime_r(&time, &tm);
 	*timestamp = time;
 
-	year = tm.tm_year + 1900;
-	if (year < 1980 || 2107 < year)
-		die(_("year %d out of range"), year);
-
-	*dos_date = tm.tm_mday + (tm.tm_mon + 1) * 32 + (year - 1980) * 512;
+	*dos_date = tm.tm_mday + (tm.tm_mon + 1) * 32 +
+		    (tm.tm_year + 1900 - 1980) * 512;
 	*dos_time = tm.tm_sec / 2 + tm.tm_min * 32 + tm.tm_hour * 2048;
 }
 
