@@ -594,17 +594,16 @@ static void write_zip_trailer(const struct object_id *oid)
 		write_or_die(1, oid_to_hex(oid), the_hash_algo->hexsz);
 }
 
-static void dos_time(timestamp_t *timestamp, int *dos_date, int *dos_time)
+static void dos_time(timestamp_t timestamp, int *dos_date, int *dos_time)
 {
 	time_t time;
 	struct tm tm;
 
-	if (date_overflows(*timestamp))
+	if (date_overflows(timestamp))
 		die(_("timestamp too large for this system: %"PRItime),
-		    *timestamp);
-	time = (time_t)*timestamp;
+		    timestamp);
+	time = (time_t)timestamp;
 	localtime_r(&time, &tm);
-	*timestamp = time;
 
 	*dos_date = tm.tm_mday + (tm.tm_mon + 1) * 32 +
 		    (tm.tm_year + 1900 - 1980) * 512;
@@ -625,7 +624,7 @@ static int write_zip_archive(const struct archiver *ar UNUSED,
 
 	repo_config(the_repository, archive_zip_config, NULL);
 
-	dos_time(&args->time, &zip_date, &zip_time);
+	dos_time(args->time, &zip_date, &zip_time);
 
 	strbuf_init(&zip_dir, 0);
 	strbuf_init(&zip_extra_mtime, 0);
