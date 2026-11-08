@@ -527,6 +527,7 @@ test_expect_success TIME_IS_64BIT 'set up repository with far-future (2^34 - 1) 
 test_expect_success TIME_IS_64BIT 'generate tar with far-future mtime' '
 	git archive HEAD >future.tar &&
 	object_format=$(git repo info object.format | cut -f2 -d=) &&
+	test-tool hexdump <future.tar &&
 	test_cmp_bin future.tar "$TEST_DIRECTORY"/t5000/2514-$object_format.tar
 '
 
@@ -547,6 +548,7 @@ test_expect_success TIME_IS_64BIT 'set up repository with far-far-future (2^36 +
 test_expect_success TIME_IS_64BIT 'generate tar with far-far-future mtime' '
 	git archive HEAD >future.tar &&
 	object_format=$(git repo info object.format | cut -f2 -d=) &&
+	test-tool hexdump <future.tar &&
 	test_cmp_bin future.tar "$TEST_DIRECTORY"/t5000/4147-$object_format.tar
 '
 
