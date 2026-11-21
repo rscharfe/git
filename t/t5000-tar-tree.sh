@@ -552,4 +552,22 @@ test_expect_success TAR_HUGE,TIME_IS_64BIT,TIME_T_IS_64BIT 'system tar can read 
 	test_cmp expect actual
 '
 
+test_expect_success '--no-add-file keeps --add-virtual-file entries' '
+	echo foo >file &&
+	git archive --add-file=file --add-virtual-file=virtual:file \
+		--no-add-file $EMPTY_TREE >virtual.tar &&
+	"$TAR" tf virtual.tar >actual &&
+	echo virtual >expect &&
+	test_cmp expect actual
+'
+
+test_expect_success '--no-add-virtual-file keeps --add-file entries' '
+	echo foo >file &&
+	git archive --add-file=file --add-virtual-file=virtual:file \
+		--no-add-virtual-file $EMPTY_TREE >untracked.tar &&
+	"$TAR" tf untracked.tar >actual &&
+	echo file >expect &&
+	test_cmp expect actual
+'
+
 test_done

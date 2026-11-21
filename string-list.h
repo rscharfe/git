@@ -134,6 +134,16 @@ typedef void (*string_list_clear_func_t)(void *p, const char *str);
 /** Call a custom clear function on each util pointer */
 void string_list_clear_func(struct string_list *list, string_list_clear_func_t clearfunc);
 
+/**
+ * Apply `want` to each item in `list`, retaining only the ones for which
+ * the function returns true.  Call `clearfunc` on the util members of
+ * any items that have to be deleted.  Preserve the order of the items
+ * that are retained.
+ */
+void filter_string_list_func(struct string_list *list,
+			     string_list_clear_func_t clearfunc,
+			     string_list_each_func_t want, void *cb_data);
+
 /*
  * Set the length of a string_list to `nr`, provided that (a) `list`
  * does not own its own storage, and (b) that `nr` is no larger than

@@ -559,6 +559,14 @@ static void extra_file_info_clear(void *util, const char *str UNUSED)
 	free(info);
 }
 
+static int keep_file(struct string_list_item *item, void *cb_data)
+{
+	struct extra_file_info *info = item->util;
+	bool is_regular_file = !info->content;
+	bool keep_regular_file = !!cb_data;
+	return is_regular_file == keep_regular_file;
+}
+
 static int add_file_cb(const struct option *opt, const char *arg, int unset)
 {
 	struct archiver_args *args = opt->value;
@@ -569,8 +577,10 @@ static int add_file_cb(const struct option *opt, const char *arg, int unset)
 	struct extra_file_info *info;
 
 	if (unset) {
-		string_list_clear_func(&args->extra_files,
-				       extra_file_info_clear);
+		bool keep_regular_file = !!strcmp(opt->long_name, "add-file");
+		filter_string_list_func(&args->extra_files,
+					extra_file_info_clear, keep_file,
+					keep_regular_file ? (void *)1 : NULL);
 		return 0;
 	}
 

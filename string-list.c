@@ -151,6 +151,24 @@ void filter_string_list(struct string_list *list, int free_util,
 	list->nr = dst;
 }
 
+void filter_string_list_func(struct string_list *list,
+			     string_list_clear_func_t clearfunc,
+			     string_list_each_func_t want, void *cb_data)
+{
+	size_t dst = 0;
+	for (size_t src = 0; src < list->nr; src++) {
+		if (want(&list->items[src], cb_data)) {
+			list->items[dst++] = list->items[src];
+		} else {
+			clearfunc(list->items[src].util,
+				  list->items[src].string);
+			if (list->strdup_strings)
+				free(list->items[src].string);
+		}
+	}
+	list->nr = dst;
+}
+
 static int item_is_not_empty(struct string_list_item *item, void *data UNUSED)
 {
 	return *item->string != '\0';
