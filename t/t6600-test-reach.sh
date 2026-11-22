@@ -68,10 +68,9 @@ test_expect_success 'setup' '
 	#       root                @1000
 	#
 	git checkout --orphan skew-orphan &&
-	skew_tree=$(git mktree </dev/null) &&
 	skew_commit () {
 		GIT_COMMITTER_DATE="@$1 +0000" GIT_AUTHOR_DATE="@$1 +0000" \
-			git commit-tree -m "$2" "$skew_tree" $3 $4 $5 $6
+			git commit-tree -m "$2" "$EMPTY_TREE" $3 $4 $5 $6
 	} &&
 	skew_root=$(skew_commit 1000 root) &&
 	skew_M1=$(skew_commit 5000 M1 -p "$skew_root") &&

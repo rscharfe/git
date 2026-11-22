@@ -1524,8 +1524,8 @@ test_expect_success 'stash export and import round-trip stashes' '
 	test_cmp_rev stash@{0} t-stash0 &&
 	test_cmp_rev stash@{1} t-stash1 &&
 	git stash export --to-ref refs/heads/foo &&
-	test_cmp_rev "$(test_oid empty_tree)" foo: &&
-	test_cmp_rev "$(test_oid empty_tree)" foo^: &&
+	test_cmp_rev $EMPTY_TREE foo: &&
+	test_cmp_rev $EMPTY_TREE foo^: &&
 	test_cmp_rev t-stash0 foo^2 &&
 	test_cmp_rev t-stash1 foo^^2 &&
 	git log --first-parent --format="%s" refs/heads/foo >log &&
@@ -1567,7 +1567,7 @@ test_expect_success 'stash export rejects invalid arguments' '
 test_expect_success 'stash can import and export zero stashes' '
 	git stash clear &&
 	git stash export --to-ref refs/heads/baz &&
-	test_cmp_rev "$(test_oid empty_tree)" baz: &&
+	test_cmp_rev $EMPTY_TREE baz: &&
 	test_cmp_rev "$(test_oid export_base)" baz &&
 	test_must_fail git rev-parse baz^1 &&
 	git stash import baz &&
@@ -1582,7 +1582,7 @@ test_expect_success 'stash rejects invalid attempts to import commits' '
 	test_cmp_rev stash@{0} t-stash0 &&
 
 	git checkout --orphan orphan &&
-	git commit-tree $(test_oid empty_tree) -p "$oid" -p "$oid^" -m "" >fake-commit &&
+	git commit-tree $EMPTY_TREE -p "$oid" -p "$oid^" -m "" >fake-commit &&
 	git update-ref refs/heads/orphan "$(cat fake-commit)" &&
 	oid=$(git rev-parse HEAD) &&
 	test_must_fail git stash import orphan 2>output &&
@@ -1590,7 +1590,7 @@ test_expect_success 'stash rejects invalid attempts to import commits' '
 	test_cmp_rev stash@{0} t-stash0 &&
 
 	git checkout --orphan orphan2 &&
-	git commit-tree $(test_oid empty_tree) -m "" >fake-commit &&
+	git commit-tree $EMPTY_TREE -m "" >fake-commit &&
 	git update-ref refs/heads/orphan2 "$(cat fake-commit)" &&
 	oid=$(git rev-parse HEAD) &&
 	test_must_fail git stash import orphan2 2>output &&

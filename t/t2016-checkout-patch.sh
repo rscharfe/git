@@ -127,7 +127,7 @@ test_expect_success 'none of this moved HEAD' '
 
 test_expect_success 'empty tree can be handled' '
 	test_when_finished "git reset --hard" &&
-	git checkout -p $(test_oid empty_tree) --
+	git checkout -p $EMPTY_TREE --
 '
 
 test_done

@@ -1449,7 +1449,6 @@ test_expect_success 'N: delete directory by copying' '
 	:000000 100644 OBJID OBJID A	foo/bar/baz
 	:000000 100644 OBJID OBJID A	foo/bar/qux
 	EOF
-	empty_tree=$(git mktree </dev/null) &&
 	cat >input <<-INPUT_END &&
 	commit refs/heads/N-delete
 	committer $GIT_COMMITTER_NAME <$GIT_COMMITTER_EMAIL> $GIT_COMMITTER_DATE
@@ -1465,8 +1464,8 @@ test_expect_success 'N: delete directory by copying' '
 	C "foo/bar/baz" "foo/bar/qux"
 	C "foo/bar/baz" "foo/bar/quux/1"
 	C "foo/bar/baz" "foo/bar/quuux"
-	M 040000 $empty_tree foo/bar/quux
-	M 040000 $empty_tree foo/bar/quuux
+	M 040000 $EMPTY_TREE foo/bar/quux
+	M 040000 $EMPTY_TREE foo/bar/quuux
 
 	commit refs/heads/N-delete
 	committer $GIT_COMMITTER_NAME <$GIT_COMMITTER_EMAIL> $GIT_COMMITTER_DATE
@@ -1474,7 +1473,7 @@ test_expect_success 'N: delete directory by copying' '
 	delete subdirectory
 	COMMIT
 
-	M 040000 $empty_tree foo/bar/qux
+	M 040000 $EMPTY_TREE foo/bar/qux
 	INPUT_END
 	git fast-import <input &&
 	git rev-list N-delete |

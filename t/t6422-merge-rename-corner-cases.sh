@@ -1540,8 +1540,7 @@ test_expect_success 'duplicate tree entries trigger an error' '
 		cd duplicate-entry &&
 
 		# Base commit: "docs" is a gitlink (submodule)
-		empty_tree=$(git mktree </dev/null) &&
-		fake_commit=$(git commit-tree $empty_tree </dev/null) &&
+		fake_commit=$(git commit-tree $EMPTY_TREE </dev/null) &&
 		git update-index --add --cacheinfo 160000,$fake_commit,docs &&
 		echo base >file.txt &&
 		git add file.txt &&

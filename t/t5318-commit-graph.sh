@@ -423,7 +423,7 @@ test_expect_success TIME_IS_64BIT,TIME_T_IS_64BIT 'overflow chunk when replacing
 	(
 		cd repo &&
 		cat >commit <<-EOF &&
-		tree $(test_oid empty_tree)
+		tree $EMPTY_TREE
 		author Example <committer@example.com> 9223372036854775 +0000
 		committer Example <committer@example.com> 9223372036854775 +0000
 
@@ -729,9 +729,8 @@ test_expect_success 'corrupt commit-graph write (broken parent)' '
 	git init repo &&
 	(
 		cd repo &&
-		empty="$(git mktree </dev/null)" &&
 		cat >broken <<-EOF &&
-		tree $empty
+		tree $EMPTY_TREE
 		parent $ZERO_OID
 		author whatever <whatever@example.com> 1234 -0000
 		committer whatever <whatever@example.com> 1234 -0000
@@ -739,7 +738,7 @@ test_expect_success 'corrupt commit-graph write (broken parent)' '
 		broken commit
 		EOF
 		broken="$(git hash-object -w -t commit --literally broken)" &&
-		git commit-tree -p "$broken" -m "good commit" "$empty" >good &&
+		git commit-tree -p "$broken" -m "good commit" "$EMPTY_TREE" >good &&
 		test_must_fail git commit-graph write --stdin-commits \
 			<good 2>test_err &&
 		test_grep "unable to parse commit" test_err
@@ -751,7 +750,6 @@ test_expect_success 'corrupt commit-graph write (missing tree)' '
 	git init repo &&
 	(
 		cd repo &&
-		tree="$(git mktree </dev/null)" &&
 		cat >broken <<-EOF &&
 		parent $ZERO_OID
 		author whatever <whatever@example.com> 1234 -0000
@@ -760,7 +758,7 @@ test_expect_success 'corrupt commit-graph write (missing tree)' '
 		broken commit
 		EOF
 		broken="$(git hash-object -w -t commit --literally broken)" &&
-		git commit-tree -p "$broken" -m "good" "$tree" >good &&
+		git commit-tree -p "$broken" -m "good" "$EMPTY_TREE" >good &&
 		test_must_fail git commit-graph write --stdin-commits \
 			<good 2>test_err &&
 		test_grep "unable to parse commit" test_err

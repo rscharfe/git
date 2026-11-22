@@ -450,8 +450,7 @@ test_expect_success 'diffstat truncation with invalid UTF-8 does not crash' '
 	printf "100644 blob $empty_blob\taaa-\300-aaa\n" |
 	git mktree >tree_file &&
 	tree=$(cat tree_file) &&
-	empty_tree=$(git mktree </dev/null) &&
-	c1=$(git commit-tree -m before $empty_tree) &&
+	c1=$(git commit-tree -m before $EMPTY_TREE) &&
 	c2=$(git commit-tree -m after -p $c1 $tree) &&
 	git -c core.quotepath=false diff --stat --stat-name-width=5 $c1..$c2 >output &&
 	test_grep "| 0" output

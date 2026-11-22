@@ -110,8 +110,7 @@ test_expect_success 'archive complains about pathspec on empty tree' '
 '
 
 test_expect_success 'create a commit with an empty subtree' '
-	empty_tree=$(git hash-object -t tree /dev/null) &&
-	root_tree=$(printf "040000 tree $empty_tree\tsub\n" | git mktree)
+	root_tree=$(printf "040000 tree $EMPTY_TREE\tsub\n" | git mktree)
 '
 
 test_expect_success 'archive empty subtree with no pathspec' '

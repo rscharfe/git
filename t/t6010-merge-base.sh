@@ -32,15 +32,11 @@ doit () {
 	GIT_AUTHOR_DATE=$GIT_COMMITTER_DATE &&
 	export GIT_COMMITTER_DATE GIT_AUTHOR_DATE &&
 
-	commit=$(echo $NAME | git commit-tree $T $PARENTS) &&
+	commit=$(echo $NAME | git commit-tree $EMPTY_TREE $PARENTS) &&
 
 	git update-ref "refs/tags/$NAME" "$commit" &&
 	echo $commit
 }
-
-test_expect_success 'setup' '
-	T=$(git mktree </dev/null)
-'
 
 test_expect_success 'set up G and H' '
 	# E---D---C---B---A
